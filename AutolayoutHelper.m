@@ -41,8 +41,11 @@ BOOL displayBackgroundColorsForDebugging = NO;
 {
     AutolayoutHelper* autolayoutHelper = [[AutolayoutHelper alloc] initWithView:view subViews:subViews];
 
-    [autolayoutHelper prepareSubViews];
+    [autolayoutHelper disableAutoresizingMask];
     [autolayoutHelper addSubViewsToParentView];
+    if (displayBackgroundColorsForDebugging) {
+        [autolayoutHelper setRandomBackgroundColors];
+    }
     autolayoutHelper.metrics = metrics;
 
     for (NSString* constraint in constraints) {
@@ -54,13 +57,6 @@ BOOL displayBackgroundColorsForDebugging = NO;
 
     for (UIView* subView in self.subViews.allValues) {
         [self.view addSubview:subView];
-
-        if (displayBackgroundColorsForDebugging) {
-            u_int32_t red = arc4random_uniform(256);
-            u_int32_t green = arc4random_uniform(256);
-            u_int32_t blue = arc4random_uniform(256);
-            subView.backgroundColor = [UIColor colorWithRed:red/255.0f green:green/255.0f blue:blue /255.0f alpha:0.4];
-        }
     }
 }
 
@@ -68,11 +64,34 @@ BOOL displayBackgroundColorsForDebugging = NO;
     displayBackgroundColorsForDebugging = displayColors;
 }
 
-- (void)prepareSubViews
+- (void)disableAutoresizingMask
 {
     for (UIView* subView in self.subViews.allValues) {
         subView.translatesAutoresizingMaskIntoConstraints = NO;
     }
 }
+
+- (void)setRandomBackgroundColors
+{
+    for (UIView* subView in self.subViews.allValues)
+    {
+        u_int32_t red = arc4random_uniform(256);
+        u_int32_t green = arc4random_uniform(256);
+        u_int32_t blue = arc4random_uniform(256);
+        subView.backgroundColor = [UIColor colorWithRed:red/255.0f green:green/255.0f blue:blue /255.0f alpha:0.4];
+    }
+}
+
++ (void)configureScrollView:(UIScrollView*)scrollView contentView:(UIView*)contentView mainView:(UIView*)mainView {
+
+    [AutolayoutHelper configureView:scrollView
+                           subViews:@{@"content":contentView}
+                        constraints:@[ @"H:|[content]|", @"V:|[content]|" ]];
+
+    NSDictionary* viewDict = @{ @"content":contentView, @"mainView":mainView };
+    [mainView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[content(==mainView)]"
+                                                                      options:0 metrics:0 views:viewDict]];
+}
+
 
 @end
