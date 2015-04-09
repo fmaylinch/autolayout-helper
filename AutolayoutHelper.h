@@ -8,21 +8,32 @@
 
 @interface AutolayoutHelper : NSObject
 
-- (id)initWithView:(UIView*)view subViews:(NSDictionary*)subViews;
 
-- (void)addSubViewsToParentView;
+@property(nonatomic, weak) UIView* view;
+@property(nonatomic, strong) NSMutableDictionary* subViews;
+@property(nonatomic, strong) NSDictionary* metrics;
 
-- (void)disableAutoresizingMask;
-
-- (void)setRandomBackgroundColors;
 
 + (void)setDisplayBackgroundColorsForDebugging:(BOOL)displayColor;
 
-- (void)addConstraint:(NSString*)constraint;
++ (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews constraints:(NSArray*)constraints;
 
-+ (void)configureView:(UIView*)view subViews:(NSDictionary*)subViews constraints:(NSArray*)constraints;
++ (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints;
 
-+ (void)configureView:(UIView*)view subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints;
+- (id)initWithView:(UIView*)view;
+
+- (void)addViews:(NSDictionary*)subViews;
+
+- (void)addViews:(NSDictionary*)subViews constraints:(NSArray*)constraints;
+
+- (void)removeViews:(NSDictionary*)subViews;
+
+- (NSArray*)addConstraint:(NSString*)constraint;
+
+- (void)addConstraints:(NSArray*)constraints;
+
+// Adds the given constraints, but first removes any constraints added previously with this method using the same key
+- (void)addConstraints:(NSArray*)constraints forKey:(NSString*)key;
 
 /**
  * Helper method to configure a UIScrollView that has the same width as the mainView.
