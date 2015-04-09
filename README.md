@@ -24,7 +24,7 @@ Note `VarBindings(v1, v2)` is the same as `NSDictionaryOfVariableBindings(v1, v2
 
 This method prepares the `subViews` for auto-layout, adds them to the `view`, and adds the constraints. I recommend you to read the source code to understand everything. If you need some help with auto-layout constraints, see this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
 
-If you need some metrics for your constraints, use the method that has the metrics parameter:
+If you need some metrics for your constraints, use the method that has the `metrics` parameter:
 
 ```objectivec
 [AutolayoutHelper configureView:view
@@ -74,7 +74,7 @@ Now add `v3` and the necessary constraints:
      ]];
 ```
 
-Noe let's suppose you want to remove `v3` but you don't want to add any other view.
+Now let's suppose you want to remove `v3` but you don't want to add any other view.
 
 First remove `v3`:
 
