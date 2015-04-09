@@ -12,7 +12,7 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
 
 ```objectivec
 [AutolayoutHelper configureView:view
-                       subViews:NSDictionaryOfVariableBindings(v1, v2)
+                       subViews:VarBindings(v1, v2)
                     constraints:@[
                             @"H:|[v1]|",
                             @"H:|[v2]|",
@@ -20,13 +20,15 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
                     ]];
 ```
 
+Note `VarBindings(v1, v2)` is the same as `NSDictionaryOfVariableBindings(v1, v2)` and the same as `@{@"v1":v1, @"v2":v2}`.
+
 This method prepares the `subViews` for auto-layout, adds them to the `view`, and adds the constraints. I recommend you to read the source code to understand everything. If you need some help with auto-layout constraints, see this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
 
 If you need some metrics for your constraints, use the method that has the metrics parameter:
 
 ```objectivec
 [AutolayoutHelper configureView:view
-                       subViews:NSDictionaryOfVariableBindings(v1, v2)
+                       subViews:VarBindings(v1, v2)
                         metrics:@{@"h":@(50)}
                     constraints:@[
                             @"H:|[v1]|",
@@ -44,7 +46,7 @@ If you need to add or remove views dynamically you can use other methods to conf
 ```objectivec
 AutolayoutHelper* helper = [[AutolayoutHelper alloc] initWithView:view];
 helper.metrics = @{@"h":@(50)};
-[helper addViews:NSDictionaryOfVariableBindings(v1, v2)
+[helper addViews:VarBindings(v1, v2)
      constraints:@[
              @"H:|[v1]|",
              @"H:|[v2]|",
@@ -57,7 +59,7 @@ Now let's suppose you want to replace the view `v2` by another `v3`.
 First, remove `v2` (remember to use the same dictionary key you used before):
 
 ```objectivec
-[helper removeViews:NSDictionaryOfVariableBindings(v2)];
+[helper removeViews:VarBindings(v2)];
  ```
 
 Note that the constraints that include the removed `v2` will be automatically removed from the `view`, so now there's only one constraint left: `"H:|[v1]|"`.
@@ -65,7 +67,7 @@ Note that the constraints that include the removed `v2` will be automatically re
 Now add `v3` and the necessary constraints:
 
 ```objectivec
-[helper addViews:NSDictionaryOfVariableBindings(v3)
+[helper addViews:VarBindings(v3)
      constraints:@[
              @"H:|[v3]|",
              @"V:|-[v1(h)]-[v3(h)]-|"
@@ -77,7 +79,7 @@ Noe let's suppose you want to remove `v3` but you don't want to add any other vi
 First remove `v3`:
 
 ```objectivec
-[helper removeViews:NSDictionaryOfVariableBindings(v3)];
+[helper removeViews:VarBindings(v3)];
  ```
 
 Now there's only one constraint left again: `"H:|[v1]|"`, so you may want to add the vertical constraint:
@@ -92,7 +94,7 @@ Let's suppose you want to switch between the constraints `"V:|-[v1]-[v2]-|"` and
 
 ```objectivec
 AutolayoutHelper* helper = [[AutolayoutHelper alloc] initWithView:view];
-[helper addViews:NSDictionaryOfVariableBindings(v1, v2)
+[helper addViews:VarBindings(v1, v2)
      constraints:@[
              @"H:|[v1]|",
              @"H:|[v2]|"
@@ -123,7 +125,7 @@ UIScrollView* scrollView = [[UIScrollView alloc] init];
 // Here the scrollView fills the main view, but you might want to add
 // other views (like a fixed button at the bottom).
 [AutolayoutHelper configureView:self.view
-                       subViews:NSDictionaryOfVariableBindings(scrollView)
+                       subViews:VarBindings(scrollView)
                     constraints:@[ @"H:|[scrollView]|", @"V:|[scrollView]|" ]];
 
 // This view will be the content of the scrollView
@@ -139,7 +141,7 @@ UIView* scrollContent = [[UIView alloc] init];
 // @"V:|-[v1]-[v2]-[v3]-|" constraint. The scrollView contentSize is also
 // adjusted automatically to the size of the scrollContent. 
 [AutolayoutHelper configureView:scrollContent
-                       subViews:NSDictionaryOfVariableBindings(v1, v2, v3)
+                       subViews:VarBindings(v1, v2, v3)
                     constraints:@[
                             @"H:|-[v1]-|",
                             @"H:|-[v2]-|",

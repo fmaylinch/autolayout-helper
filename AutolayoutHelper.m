@@ -27,9 +27,7 @@ BOOL displayBackgroundColorsForDebugging = NO;
 
     helper.metrics = metrics;
 
-    [helper addViews:subViews];
-
-    [helper addConstraints:constraints];
+    [helper addViews:subViews constraints:constraints];
 
     return helper;
 }

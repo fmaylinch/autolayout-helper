@@ -2,9 +2,11 @@
 // Helper to configure auto layout constraints
 //
 // Based on this tutorial: http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/
+// Also inspired by this: http://stackoverflow.com/a/18066138/1121497
 
 #import <Foundation/Foundation.h>
 
+#define VarBindings(...) _NSDictionaryOfVariableBindings(@"" # __VA_ARGS__, __VA_ARGS__, nil)
 
 @interface AutolayoutHelper : NSObject
 
