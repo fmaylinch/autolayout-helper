@@ -76,28 +76,50 @@ BOOL displayBackgroundColorsForDebugging = NO;
 
 - (void)removeViews:(NSDictionary*)subViews {
 
-    for (NSString* viewKey in subViews.allKeys) {
-        [self.subViews removeObjectForKey:viewKey];
-        UIView* subView = subViews[viewKey];
+    [self removeViewsWithKeys:subViews.allKeys];
+}
+
+- (void)removeViewsWithKeys:(NSArray*)viewKeys {
+
+    for (NSString* viewKey in viewKeys) {
+        UIView* subView = self.subViews[viewKey];
         [subView removeFromSuperview];
+        [self.subViews removeObjectForKey:viewKey];
     }
 }
 
 - (void)addConstraints:(NSArray*)constraints
 {
+    [self addConstraints:constraints priority:PRIORITY_DEFAULT];
+}
+
+- (void)addConstraints:(NSArray*)constraints priority:(UILayoutPriority)priority
+{
     for (NSString* constraint in constraints) {
-        [self addConstraint:constraint];
+        [self addConstraint:constraint priority:priority];
     }
 }
+
 - (NSArray*)addConstraint:(NSString*)constraint
+{
+    return [self addConstraint:constraint priority:PRIORITY_DEFAULT];
+}
+
+- (NSArray*)addConstraint:(NSString*)constraint priority:(UILayoutPriority)priority
 {
     NSArray* constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint
                                                                       options:(NSLayoutFormatOptions) 0
                                                                       metrics:self.metrics
                                                                         views:self.subViews];
 
+    if (priority != PRIORITY_DEFAULT) {
+        for (NSLayoutConstraint* c in constraints) {
+            c.priority = priority;
+        }
+    }
+
     [self.view addConstraints:constraints];
-    
+
     return constraints;
 }
 
@@ -112,7 +134,11 @@ BOOL displayBackgroundColorsForDebugging = NO;
                                                                       options:0 metrics:0 views:viewDict]];
 }
 
-- (void)addConstraints:(NSArray*)constraints forKey:(NSString*)key {
+- (void)setConstraints:(NSArray*)constraints forKey:(NSString*)key {
+    [self setConstraints:constraints priority:PRIORITY_DEFAULT forKey:key];
+}
+
+- (void)setConstraints:(NSArray*)constraints priority:(UILayoutPriority)priority forKey:(NSString*)key {
 
     // Remove previously added constraints for that key
 
@@ -128,7 +154,7 @@ BOOL displayBackgroundColorsForDebugging = NO;
     NSMutableArray* addedConstraints = [[NSMutableArray alloc] init];
 
     for (NSString* constraint in constraints) {
-        NSArray* resultingConstraints = [self addConstraint:constraint];
+        NSArray* resultingConstraints = [self addConstraint:constraint priority:priority];
         [addedConstraints addObjectsFromArray:resultingConstraints];
     }
     

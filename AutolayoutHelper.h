@@ -8,6 +8,8 @@
 
 #define VarBindings(...) _NSDictionaryOfVariableBindings(@"" # __VA_ARGS__, __VA_ARGS__, nil)
 
+#define PRIORITY_DEFAULT -1
+
 @interface AutolayoutHelper : NSObject
 
 
@@ -30,13 +32,20 @@
 
 - (void)removeViews:(NSDictionary*)subViews;
 
+- (void)removeViewsWithKeys:(NSArray*)array;
+
 - (NSArray*)addConstraint:(NSString*)constraint;
+
+- (NSArray*)addConstraint:(NSString*)constraint priority:(UILayoutPriority)priority;
 
 - (void)addConstraints:(NSArray*)constraints;
 
-// Adds the given constraints, but first removes any constraints added previously with this method using the same key
-- (void)addConstraints:(NSArray*)constraints forKey:(NSString*)key;
+- (void)addConstraints:(NSArray*)constraints priority:(UILayoutPriority)priority;
 
+// Adds the given constraints, but first removes any constraints added previously with this method using the same key
+- (void)setConstraints:(NSArray*)constraints forKey:(NSString*)key;
+
+- (void)setConstraints:(NSArray*)constraints priority:(UILayoutPriority)priority forKey:(NSString*)key;
 /**
  * Helper method to configure a UIScrollView that has the same width as the mainView.
  * First add the scrollView to the mainView (using AutolayoutHelper also, if you want).
