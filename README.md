@@ -20,7 +20,7 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
                     ]];
 ```
 
-Note `VarBindings(v1, v2)` is the same as `NSDictionaryOfVariableBindings(v1, v2)` and the same as `@{@"v1":v1, @"v2":v2}`.
+Note: `VarBindings(v1, v2)` is the same as `NSDictionaryOfVariableBindings(v1, v2)` and the same as `@{@"v1":v1, @"v2":v2}`.
 
 This method prepares the `subViews` for auto-layout, adds them to the `view`, and adds the constraints. I recommend you to read the source code to understand everything. If you need some help with auto-layout constraints, see this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
 
@@ -56,10 +56,12 @@ helper.metrics = @{@"h":@(50)};
 
 Now let's suppose you want to replace the view `v2` by another `v3`.
 
-First, remove `v2` (remember to use the same dictionary key you used before):
+First, remove `v2` with one of these methods:
 
 ```objectivec
 [helper removeViews:VarBindings(v2)];
+// or
+[helper removeViewsWithKeys:@[@"v2"]];
  ```
 
 Note that the constraints that include the removed `v2` will be automatically removed from the `view`, so now there's only one constraint left: `"H:|[v1]|"`.
@@ -80,9 +82,11 @@ First remove `v3`:
 
 ```objectivec
 [helper removeViews:VarBindings(v3)];
+// or
+[helper removeViewsWithKeys:@[@"v3"]];
  ```
 
-Now there's only one constraint left again: `"H:|[v1]|"`, so you may want to add the vertical constraint:
+Now there's only one constraint left again, `"H:|[v1]|"`, so you may want to add the vertical constraint:
 
 ```objectivec
 [helper addConstraint:@"V:|-[v1(h)]-|"]
