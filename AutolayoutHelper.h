@@ -9,6 +9,8 @@
 #define VarBindings(...) _NSDictionaryOfVariableBindings(@"" # __VA_ARGS__, __VA_ARGS__, nil)
 
 #define PRIORITY_DEFAULT -1
+#define XT_CONSTRAINT_SYMBOL @"X"
+
 
 @interface AutolayoutHelper : NSObject
 

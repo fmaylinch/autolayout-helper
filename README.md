@@ -39,6 +39,56 @@ If you want to use metrics for your constraints, use the method that has the `me
 
 ## Advanced Usage
 
+### Using extended constraint expressions
+
+`AutolayoutHelper` extends the [visual format language](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage/VisualFormatLanguage.html) by adding support for constraints that require the [constraintWithItem](https://developer.apple.com/library/ios/documentation/AppKit/Reference/NSLayoutConstraint_Class/#//apple_ref/occ/clm/NSLayoutConstraint/constraintWithItem:attribute:relatedBy:toItem:attribute:multiplier:constant:) method.
+
+For example, let's say you want to add a constraint so the height of `v1` is half the height of `v2`. You would normally do that this way:
+
+```objectivec
+NSLayoutConstraint* c =
+    [NSLayoutConstraint constraintWithItem:v1
+                attribute:NSLayoutAttributeWidth
+                relatedBy:NSLayoutRelationEqual
+                   toItem:v2
+                attribute:NSLayoutAttributeWidth
+               multiplier:0.5
+                 constant:0];
+    [view addConstraint:c];
+```
+
+That is a bit hard to read. What that does is to create a constraint with this equation:
+
+    v1.width == v2.width * 0.5 + 0
+
+That equation is easier to understand. And we could simplify it as:
+
+    v1.width == v2.width / 2
+
+With `AutolayoutHelper` you could write that constraint like this ("X" stands for "extended"):
+
+```objectivec
+    @"X:[v1].width == [v2].width / 2"
+```
+
+The syntax for extended constraints is:
+
+    X:[view1].attr1 relation [view2].attr2 *|/ mult +|- const
+
+* You can use any subview or refer to the superview using `[|]`.
+* You may use any attribute supported in iOS7 (see [NSLayoutAttribute](https://developer.apple.com/library/ios/documentation/AppKit/Reference/NSLayoutConstraint_Class/#//apple_ref/c/tdef/NSLayoutAttribute)).
+* The `relation` can be `==`, `<=` or `>=`.
+* The multiplier is optional (default: 1). Use `*` or `/` and a floating point number.
+* The constant is optional (default: 0). Use `+` or `-` and a floating point number.
+
+Examples:
+
+```objectivec
+    @"X:[v1].top == [v2].centerY * 0.5 - 10"
+    @"X:[v1].centerX == [|].centerX + 5"
+```
+
+
 ### Adding and removing views and constraints dynamically
 
 Let's say you created the following layout. Notice is the same as the one above, but storing the result in a variable of type `AutolayoutHelper`.
