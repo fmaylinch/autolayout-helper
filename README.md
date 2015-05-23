@@ -54,10 +54,10 @@ NSLayoutConstraint* c =
                 attribute:NSLayoutAttributeWidth
                multiplier:0.5
                  constant:0];
-    [view addConstraint:c];
+[view addConstraint:c];
 ```
 
-That is a bit hard to read. What that does is to create a constraint with this equation:
+That is a bit hard to read,. What it does is to create and add a constraint with this equation:
 
     v1.width == v2.width * 0.5 + 0
 
@@ -85,6 +85,7 @@ Examples:
 
 ```objectivec
     @"X:[v1].top == [v2].centerY * 0.5 - 10"
+    @"X:[v1].top >= [v2].bottom"
     @"X:[v1].centerX == [|].centerX + 5"
 ```
 
