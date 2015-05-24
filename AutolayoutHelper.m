@@ -216,7 +216,9 @@ NSDictionary* relations;
 + (void)initializeXtConstraintRegex
 {
     NSError* error = nil;
-    NSString* attr = @"\\[([^\\[\\]]+)\\]\\.(\\w+)"; // [view] or [|] for superview
+    NSString* identifier = @"[_a-zA-Z][_a-zA-Z0-9]{0,30}";
+    // VIEW_KEY.ATTR or (use "superview" as VIEW_KEY to refer to superview)
+    NSString* attr = [NSString stringWithFormat:@"(%@)\\.(%@)", identifier, identifier];
     NSString* relation = @"*(==|>=|<=)";
     NSString* number = @"\\d+\\.?\\d*";              // float number e.g. "12", "12.", "2.56"
     NSString* multiplier = [NSString stringWithFormat:@"([*/]) *(%@)", number];  // e.g. "*5" or "/ 27.3" or "* 200"
@@ -310,7 +312,7 @@ NSDictionary* relations;
 
 - (id)findViewFromKey:(NSString*)key
 {
-    if ([key isEqualToString:@"|"]) {
+    if ([key isEqualToString:@"superview"]) {
         return self.view;
     } else {
         return self.subViews[key];

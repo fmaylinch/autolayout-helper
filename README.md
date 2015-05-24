@@ -13,22 +13,6 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
 ```objectivec
 [AutolayoutHelper configureView:view
                        subViews:VarBindings(v1, v2)
-                    constraints:@[
-                            @"H:|[v1]|",
-                            @"H:|[v2]|",
-                            @"V:|-[v1]-[v2]-|"
-                    ]];
-```
-
-Note: `VarBindings(v1, v2)` has been defined like `NSDictionaryOfVariableBindings(v1, v2)`. Both are the same as `@{@"v1":v1, @"v2":v2}`.
-
-This method prepares the `subViews` for autolayout (see [here](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/AdoptingAutoLayout/AdoptingAutoLayout.html#//apple_ref/doc/uid/TP40010853-CH15-SW1)), adds them to the `view`, and adds the constraints. I recommend you to read the source code to understand everything. If you need some help with programatic autolayout, you can read this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
-
-If you want to use metrics for your constraints, use the method that has the `metrics` parameter:
-
-```objectivec
-[AutolayoutHelper configureView:view
-                       subViews:VarBindings(v1, v2)
                         metrics:@{@"h":@(50)}
                     constraints:@[
                             @"H:|[v1]|",
@@ -36,6 +20,12 @@ If you want to use metrics for your constraints, use the method that has the `me
                             @"V:|-[v1(h)]-[v2]-|"
                     ]];
 ```
+
+Note: `VarBindings(v1, v2)` has been defined like `NSDictionaryOfVariableBindings(v1, v2)`. Both are the same as `@{@"v1":v1, @"v2":v2}`.
+
+This method prepares the `subViews` for autolayout (see [here](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/AdoptingAutoLayout/AdoptingAutoLayout.html#//apple_ref/doc/uid/TP40010853-CH15-SW1)), adds them to `view`, and also adds the constraints to `view`.
+
+I recommend you to read the source code to understand everything. If you need some help with programatic autolayout, you can read this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
 
 ## Advanced Usage
 
@@ -57,25 +47,25 @@ NSLayoutConstraint* c =
 [view addConstraint:c];
 ```
 
-That is a bit hard to read,. What it does is to create and add a constraint with this equation:
+That creates and adds a constraint that can be thought as this equation:
 
     v1.width == v2.width * 0.5 + 0
 
-That equation is easier to understand. And we could simplify it as:
+The equation is easier to read. And we could even simplify it as:
 
     v1.width == v2.width / 2
 
-With `AutolayoutHelper` you could write that constraint like this ("X" stands for "extended"):
+With `AutolayoutHelper` you could write that constraint like this:
 
 ```objectivec
-    @"X:[v1].width == [v2].width / 2"
+    @"X:v1.width == v2.width / 2"
 ```
 
-The syntax for extended constraints is:
+"X" stands for "extended". The syntax for extended constraints is:
 
-    X:[view1].attr1 relation [view2].attr2 *|/ mult +|- const
+    X:view1.attr1 relation view2.attr2 *|/ mult +|- const
 
-* You can use any subview or refer to the superview using `[|]`.
+* You can use any subview or refer to the superview using the `superview` key.
 * You may use any attribute supported in iOS7 (see [NSLayoutAttribute](https://developer.apple.com/library/ios/documentation/AppKit/Reference/NSLayoutConstraint_Class/#//apple_ref/c/tdef/NSLayoutAttribute)).
 * The `relation` can be `==`, `<=` or `>=`.
 * The multiplier is optional (default: 1). Use `*` or `/` and a floating point number.
@@ -84,9 +74,9 @@ The syntax for extended constraints is:
 Examples:
 
 ```objectivec
-    @"X:[v1].top == [v2].centerY * 0.5 - 10"
-    @"X:[v1].top >= [v2].bottom"
-    @"X:[v1].centerX == [|].centerX + 5"
+    @"X:v1.top == v2.centerY * 0.5 - 10"
+    @"X:v1.top >= v2.bottom"
+    @"X:v1.centerX == superview.centerX + 5"
 ```
 
 
