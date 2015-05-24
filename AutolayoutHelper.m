@@ -216,7 +216,7 @@ NSDictionary* relations;
 + (void)initializeXtConstraintRegex
 {
     NSError* error = nil;
-    NSString* attr = @"\\[(\\w+|\\|)\\]\\.(\\w+)";   // [view] or [|] for superview
+    NSString* attr = @"\\[([^\\[\\]]+)\\]\\.(\\w+)"; // [view] or [|] for superview
     NSString* relation = @"*(==|>=|<=)";
     NSString* number = @"\\d+\\.?\\d*";              // float number e.g. "12", "12.", "2.56"
     NSString* multiplier = [NSString stringWithFormat:@"([*/]) *(%@)", number];  // e.g. "*5" or "/ 27.3" or "* 200"
