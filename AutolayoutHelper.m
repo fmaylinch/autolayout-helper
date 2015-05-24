@@ -216,15 +216,22 @@ NSDictionary* relations;
 + (void)initializeXtConstraintRegex
 {
     NSError* error = nil;
+    // C identifier
     NSString* identifier = @"[_a-zA-Z][_a-zA-Z0-9]{0,30}";
     // VIEW_KEY.ATTR or (use "superview" as VIEW_KEY to refer to superview)
     NSString* attr = [NSString stringWithFormat:@"(%@)\\.(%@)", identifier, identifier];
-    NSString* relation = @"*(==|>=|<=)";
-    NSString* number = @"\\d+\\.?\\d*";              // float number e.g. "12", "12.", "2.56"
-    NSString* multiplier = [NSString stringWithFormat:@"([*/]) *(%@)", number];  // e.g. "*5" or "/ 27.3" or "* 200"
-    NSString* constant = [NSString stringWithFormat:@"([+-]) *(%@)", number];    // e.g. "+ 2." or "- 56" or "-7.5"
-    
-    NSString* pattern = [NSString stringWithFormat:@"^%@:%@ %@ *%@ *(%@)? *(%@)?$",
+    // Relations taken from NSLayoutRelation
+    NSString* relation = @"(==|>=|<=)";
+    // float number e.g. "12", "12.", "2.56"
+    NSString* number = @"\\d+\\.?\\d*";
+    // Value (indentifier or number)
+    NSString* value = [NSString stringWithFormat:@"(?:(?:%@)|(?:%@))", identifier, number];
+    // e.g. "*5" or "/ 27.3" or "* 200"
+    NSString* multiplier = [NSString stringWithFormat:@"([*/]) *(%@)", value];
+    // e.g. "+ 2." or "- 56" or "-7.5"
+    NSString* constant = [NSString stringWithFormat:@"([+-]) *(%@)", value];
+
+    NSString* pattern = [NSString stringWithFormat:@"^%@:%@ *%@ *%@ *(?:%@)? *(?:%@)?$",
                          XT_CONSTRAINT_SYMBOL, attr, relation, attr, multiplier, constant];
     
     xtConstraintRegex = [NSRegularExpression
@@ -245,8 +252,9 @@ NSDictionary* relations;
     
     NSTextCheckingResult* match = results[0];
     
-    if (match.numberOfRanges != 12) {
-        // I think this can't happen, but check anyway
+    // I think this won't happen if the regex is right, but check for debugging
+    if (match.numberOfRanges != 10) {
+        [self dumpMatch:match forString:constraint];
         [self throwInvalidConstraint:constraint];
     }
     
@@ -270,9 +278,9 @@ NSDictionary* relations;
     CGFloat multiplier = 1;
     if ([match rangeAtIndex:6].location != NSNotFound)
     {
-        NSString* operation = [constraint substringWithRange:[match rangeAtIndex:7]];
-        NSString* multiplierStr = [constraint substringWithRange:[match rangeAtIndex:8]];
-        multiplier = [multiplierStr floatValue];
+        NSString* operation = [constraint substringWithRange:[match rangeAtIndex:6]];
+        NSString* multiplierValue = [constraint substringWithRange:[match rangeAtIndex:7]];
+        multiplier = [self getFloatFromValue:multiplierValue];
         // If division, invert factor
         if ([operation isEqualToString:@"/"]) {
             multiplier = 1/multiplier;
@@ -281,11 +289,11 @@ NSDictionary* relations;
     
     // Default constant is 0
     CGFloat constant = 0;
-    if ([match rangeAtIndex:9].location != NSNotFound)
+    if ([match rangeAtIndex:8].location != NSNotFound)
     {
-        NSString* operation = [constraint substringWithRange:[match rangeAtIndex:10]];
-        NSString* constantStr = [constraint substringWithRange:[match rangeAtIndex:11]];
-        constant = [constantStr floatValue];
+        NSString* operation = [constraint substringWithRange:[match rangeAtIndex:8]];
+        NSString* constantValue = [constraint substringWithRange:[match rangeAtIndex:9]];
+        constant = [self getFloatFromValue:constantValue];
         // If subtraction, negate constant
         if ([operation isEqualToString:@"-"]) {
             constant = -constant;
@@ -304,10 +312,25 @@ NSDictionary* relations;
     return @[c];
 }
 
-- (void)throwInvalidConstraint:(NSString*)constraint
+- (float)getFloatFromValue:(NSString*)value
 {
-    [NSException raise:XT_CONSTRAINT_ERROR
-                format:@"%@: %@", XT_CONSTRAINT_ERROR, constraint];
+    if ([self stringStartsWithAlphaOrUnderscore:value]) { // if so, must be a metric identifier
+        NSNumber* metric = self.metrics[value];
+        if (metric) {
+            return [metric floatValue];
+        } else {
+            NSString* reason = [NSString stringWithFormat:@"Metric `%@` was not provided", value];
+            @throw([NSException exceptionWithName:XT_CONSTRAINT_ERROR reason:reason userInfo:nil]);
+        }
+    } else {
+        return [value floatValue];
+    }
+}
+
+- (BOOL)stringStartsWithAlphaOrUnderscore:(NSString*)value
+{
+    unichar c = [value characterAtIndex:0];
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
 - (id)findViewFromKey:(NSString*)key
@@ -341,6 +364,26 @@ NSDictionary* relations;
         // This won't happen since the regex only matches if the relation is right
         NSString* reason = [NSString stringWithFormat:@"Relation `%@` is not valid. Use one of: %@", relationStr, [relations allKeys]];
         @throw([NSException exceptionWithName:XT_CONSTRAINT_ERROR reason:reason userInfo:nil]);
+    }
+}
+
+- (void)throwInvalidConstraint:(NSString*)constraint
+{
+    [NSException raise:XT_CONSTRAINT_ERROR
+                format:@"%@: %@", XT_CONSTRAINT_ERROR, constraint];
+}
+
+-(void)dumpMatch:(NSTextCheckingResult*)match forString:(NSString*)str
+{
+    for (NSUInteger i=0; i<match.numberOfRanges; i++) {
+
+        NSRange range = [match rangeAtIndex:i];
+
+        if (range.location != NSNotFound) {
+            NSLog(@"Range %lu: %@", (unsigned long)i, [str substringWithRange:range]);
+        } else {
+            NSLog(@"Range %lu  NOT FOUND", (unsigned long)i);
+        }
     }
 }
 

@@ -68,15 +68,15 @@ With `AutolayoutHelper` you could write that constraint like this:
 * You can use any subview or refer to the superview using the `superview` key.
 * You may use any attribute supported in iOS7 (see [NSLayoutAttribute](https://developer.apple.com/library/ios/documentation/AppKit/Reference/NSLayoutConstraint_Class/#//apple_ref/c/tdef/NSLayoutAttribute)).
 * The `relation` can be `==`, `<=` or `>=`.
-* The multiplier is optional (default: 1). Use `*` or `/` and a floating point number.
-* The constant is optional (default: 0). Use `+` or `-` and a floating point number.
+* The multiplier is optional (default: 1). Use `*` or `/` and a floating point number or a metric.
+* The constant is optional (default: 0). Use `+` or `-` and a floating point number or a metric.
 
 Examples:
 
 ```objectivec
-    @"X:v1.top == v2.centerY * 0.5 - 10"
-    @"X:v1.top >= v2.bottom"
-    @"X:v1.centerX == superview.centerX + 5"
+    @"X:v1.top == v2.centerY * 0.5 - 10"      // using multiplier and constant
+    @"X:v1.top >= v2.bottom"                  // using relation >= and no multiplier or constant
+    @"X:v1.centerX == superview.centerX + x"  // using superview and a metric named "x"
 ```
 
 
