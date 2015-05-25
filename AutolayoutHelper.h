@@ -6,7 +6,7 @@
 
 #import <UIKit/UIKit.h>
 
-#define VarBindings(...) _NSDictionaryOfVariableBindings(@"" # __VA_ARGS__, __VA_ARGS__, nil)
+#define VarBindings NSDictionaryOfVariableBindings
 
 #define PRIORITY_DEFAULT -1
 #define XT_CONSTRAINT_SYMBOL @"X"
@@ -29,6 +29,8 @@
 - (id)initWithView:(UIView*)view;
 
 - (void)addViews:(NSDictionary*)subViews;
+
+- (void)addView:(UIView*)subView withKey:(NSString*)subViewKey;
 
 - (void)addViews:(NSDictionary*)subViews constraints:(NSArray*)constraints;
 

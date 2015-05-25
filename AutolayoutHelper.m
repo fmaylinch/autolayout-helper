@@ -60,22 +60,25 @@ NSDictionary* relations;
     for (NSString* subViewKey in subViews.allKeys) {
         
         UIView* subView = subViews[subViewKey];
-        
-        subView.translatesAutoresizingMaskIntoConstraints = NO;
-        
-        self.subViews[subViewKey] = subView;
-        
-        [self.view addSubview:subView];
-        
-        if (displayBackgroundColorsForDebugging) {
-            u_int32_t red = arc4random_uniform(256);
-            u_int32_t green = arc4random_uniform(256);
-            u_int32_t blue = arc4random_uniform(256);
-            subView.backgroundColor = [UIColor colorWithRed:red/255.0f
-                                                      green:green/255.0f
-                                                       blue:blue/255.0f
-                                                      alpha:0.4];
-        }
+        [self addView:subView withKey:subViewKey];
+    }
+}
+
+- (void)addView:(UIView*)subView withKey:(NSString *)subViewKey
+{
+    subView.translatesAutoresizingMaskIntoConstraints = NO;
+
+    self.subViews[subViewKey] = subView;
+    [self.view addSubview:subView];
+
+    if (displayBackgroundColorsForDebugging) {
+        u_int32_t red = arc4random_uniform(256);
+        u_int32_t green = arc4random_uniform(256);
+        u_int32_t blue = arc4random_uniform(256);
+        subView.backgroundColor = [UIColor colorWithRed:red/255.0f
+                                                  green:green/255.0f
+                                                   blue:blue/255.0f
+                                                  alpha:0.4];
     }
 }
 
@@ -338,7 +341,13 @@ NSDictionary* relations;
     if ([key isEqualToString:@"superview"]) {
         return self.view;
     } else {
-        return self.subViews[key];
+        id view = self.subViews[key];
+        if (view) {
+            return view;
+        } else {
+            NSString* reason = [NSString stringWithFormat:@"No view was added with key `%@`", key];
+            @throw([NSException exceptionWithName:XT_CONSTRAINT_ERROR reason:reason userInfo:nil]);
+        }
     }
 }
 
@@ -376,9 +385,7 @@ NSDictionary* relations;
 -(void)dumpMatch:(NSTextCheckingResult*)match forString:(NSString*)str
 {
     for (NSUInteger i=0; i<match.numberOfRanges; i++) {
-
         NSRange range = [match rangeAtIndex:i];
-
         if (range.location != NSNotFound) {
             NSLog(@"Range %lu: %@", (unsigned long)i, [str substringWithRange:range]);
         } else {
