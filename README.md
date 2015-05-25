@@ -21,11 +21,34 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
                     ]];
 ```
 
-Note: `VarBindings(v1, v2)` has been defined like `NSDictionaryOfVariableBindings(v1, v2)`. Both are the same as `@{@"v1":v1, @"v2":v2}`.
+Note: `VarBindings` is defined as `NSDictionaryOfVariableBindings`. So `VarBindings(v1, v2)` is the same as `@{@"v1":v1, @"v2":v2}`.
 
 This method prepares the `subViews` for autolayout (see [here](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/AdoptingAutoLayout/AdoptingAutoLayout.html#//apple_ref/doc/uid/TP40010853-CH15-SW1)), adds them to `view`, and also adds the constraints to `view`.
 
-I recommend you to read the source code to understand everything. If you need some help with programatic autolayout, you can read this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
+**IMPORTANT**: `subViews` are not necessarily added to the `view` in the order you write them (because they're passed in a `NSDictionary`).
+If you want some views to be added after others, add them in different calls like this:
+
+```objectivec
+// We add v1 and v2 together because they don't overlap
+AutolayoutHelper* layout = [AutolayoutHelper
+    configureView:view
+        subViews:VarBindings(v1, v2)
+     constraints:@[
+         @"H:|[v1]|",
+         @"H:|[v2]|",
+         @"V:|-[v1]-[v2]-|"
+      ]];
+
+// We want to add v3 after the others so it is displayed above them
+[layout addViews:VarBindings(v3)
+     constraints:@[
+        @"H:|[v3]",
+        @"V:[v1]-[v3]",
+     ]];
+
+```
+
+If you need some help with programatic autolayout, you can read this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
 
 ## Advanced Usage
 
@@ -85,7 +108,7 @@ Examples:
 Let's say you created the following layout. Notice is the same as the one above, but storing the result in a variable of type `AutolayoutHelper`.
 
 ```objectivec
-AutolayoutHelper layout = [AutolayoutHelper
+AutolayoutHelper* layout = [AutolayoutHelper
                   configureView:view
                        subViews:VarBindings(v1, v2)
                     constraints:@[
@@ -138,7 +161,7 @@ Now, like before, we're left with these constraints: `"H:|[v1]|"` and `"V:|-[v1]
 Let's suppose you want to switch between the constraints `"V:|-[v1]-[v2]-|"` and `"V:|-[v2]-[v1]-|"` in order to swap `v1` and `v2` vertically. First add the constraints that won't change:
 
 ```objectivec
-AutolayoutHelper layout = [AutolayoutHelper
+AutolayoutHelper* layout = [AutolayoutHelper
                   configureView:view
                        subViews:VarBindings(v1, v2)
                     constraints:@[
