@@ -224,7 +224,7 @@ NSDictionary* relations;
     // VIEW_KEY.ATTR or (use "superview" as VIEW_KEY to refer to superview)
     NSString* attr = [NSString stringWithFormat:@"(%@)\\.(%@)", identifier, identifier];
     // Relations taken from NSLayoutRelation
-    NSString* relation = @"(==|>=|<=)";
+    NSString* relation = @"([=><]+)";
     // float number e.g. "12", "12.", "2.56"
     NSString* number = @"\\d+\\.?\\d*";
     // Value (indentifier or number)
@@ -234,7 +234,7 @@ NSDictionary* relations;
     // e.g. "+ 2." or "- 56" or "-7.5"
     NSString* constant = [NSString stringWithFormat:@"([+-]) *(%@)", value];
 
-    NSString* pattern = [NSString stringWithFormat:@"^%@:%@ *%@ *%@ *(?:%@)? *(?:%@)?$",
+    NSString* pattern = [NSString stringWithFormat:@"^%@: *%@ *%@ *%@ *(?:%@)? *(?:%@)?$",
                          XT_CONSTRAINT_SYMBOL, attr, relation, attr, multiplier, constant];
     
     xtConstraintRegex = [NSRegularExpression
