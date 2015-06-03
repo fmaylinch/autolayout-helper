@@ -26,26 +26,23 @@ Note: `VarBindings` is defined as `NSDictionaryOfVariableBindings`. So `VarBindi
 This method prepares the `subViews` for autolayout (see [here](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/AdoptingAutoLayout/AdoptingAutoLayout.html#//apple_ref/doc/uid/TP40010853-CH15-SW1)), adds them to `view`, and also adds the constraints to `view`.
 
 **IMPORTANT**: `subViews` are not necessarily added to the `view` in the order you write them (because they're passed in a `NSDictionary`).
-If you want some views to be added after others, add them in different calls like this:
+If you want some views to be added after others, you may add them in different calls or use this convenience method:
 
 ```objectivec
-// We add v1 and v2 together because they don't overlap
+// We want v3 to be above the other views
+NSDictionary* layer1 = VarBindings(v1, v2);
+NSDictionary* layer2 = VarBindings(v3);
+
 AutolayoutHelper* layout = [AutolayoutHelper
     configureView:view
-        subViews:VarBindings(v1, v2)
+    subViewLayers:@[layer1, layer2]
      constraints:@[
          @"H:|[v1]|",
          @"H:|[v2]|",
-         @"V:|-[v1]-[v2]-|"
+         @"H:|[v3]",
+         @"V:|-[v1]-[v2]-|",
+         @"V:[v1]-[v3]",
       ]];
-
-// We want to add v3 after the others so it is displayed above them
-[layout addViews:VarBindings(v3)
-     constraints:@[
-        @"H:|[v3]",
-        @"V:[v1]-[v3]",
-     ]];
-
 ```
 
 If you need some help with programatic autolayout, you can read this [tutorial](http://www.thinkandbuild.it/learn-to-love-auto-layout-programmatically/).
@@ -186,7 +183,7 @@ To switch to the other constraints, just add them using the same key. The constr
 
 If you need to use a `UIScrollView` with autolayout, check this [Stack Overflow answer](http://stackoverflow.com/a/16843937/1121497). 
 
-You can use the `configureScrollView` helper method if you want the `UIScrollView` content view to fill the width of the main view. Here's an example:
+You can use the `configureScrollView` helper method if you want the  typical `UIScrollView` for vertical scrolling where the content view fills the width of the main view. Here's an example:
 
 ```objectivec
 UIScrollView* scrollView = [[UIScrollView alloc] init];
@@ -215,7 +212,7 @@ UIView* scrollContent = [[UIView alloc] init];
                             @"H:|-[v1]-|",
                             @"H:|-[v2]-|",
                             @"H:|-[v3]-|",
-                            @"V:|-[v1]-[v2]-[v3]-|"
+                            @"V:|-[v1]-[v2]-[v3]-|" // The "|" symbols here are important!
                     ]];
 ```
 

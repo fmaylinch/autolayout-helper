@@ -26,6 +26,9 @@
 
 + (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints;
 
+// subViewLayers is an array of dictionaries, useful when you need to add some views after (above) others
++ (AutolayoutHelper*)configureView:(UIView*)view subViewLayers:(NSArray*)subViewLayers metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints;
+
 - (id)initWithView:(UIView*)view;
 
 - (void)addViews:(NSDictionary*)subViews;

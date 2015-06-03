@@ -44,6 +44,21 @@ NSDictionary* relations;
     return helper;
 }
 
++ (AutolayoutHelper*)configureView:(UIView*)view subViewLayers:(NSArray*)subViewLayers metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints
+{
+    AutolayoutHelper* helper = [[AutolayoutHelper alloc] initWithView:view];
+    
+    helper.metrics = metrics;
+    
+    for (NSDictionary* subViews in subViewLayers) {
+        [helper addViews:subViews];
+    }
+    
+    [helper addConstraints:constraints];
+    
+    return helper;
+}
+
 - (id)initWithView:(UIView*)view
 {
     self = [super init];
@@ -153,10 +168,10 @@ NSDictionary* relations;
 + (void)configureScrollView:(UIScrollView*)scrollView contentView:(UIView*)contentView mainView:(UIView*)mainView {
     
     [AutolayoutHelper configureView:scrollView
-                           subViews:NSDictionaryOfVariableBindings(contentView)
+                           subViews:VarBindings(contentView)
                         constraints:@[ @"H:|[contentView]|", @"V:|[contentView]|" ]];
     
-    NSDictionary* viewDict = NSDictionaryOfVariableBindings(contentView, mainView);
+    NSDictionary* viewDict = VarBindings(contentView, mainView);
     [mainView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[contentView(==mainView)]"
                                                                      options:0 metrics:0 views:viewDict]];
 }
