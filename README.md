@@ -15,8 +15,9 @@ If you have a `view` where you want to put some subviews like `v1` and `v2`, cal
                        subViews:VarBindings(v1, v2)
                         metrics:@{@"h":@(50)}
                     constraints:@[
-                            @"H:|[v1]|",
+                            @"H:|[v1]",
                             @"H:|[v2]|",
+                            @"X:v1.width == v2.width / 2", // extended constraint
                             @"V:|-[v1(h)]-[v2]-|"
                     ]];
 ```
