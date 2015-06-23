@@ -1,3 +1,4 @@
+
 #import "AutolayoutHelper.h"
 
 #define XT_CONSTRAINT_ERROR @"Invalid extended constraint"
@@ -6,6 +7,7 @@
 @interface AutolayoutHelper ()
 
 @property(nonatomic, strong) NSMutableDictionary* temporalConstraints;
+@property(nonatomic, strong) UIView* strongPointerToView;
 
 @end
 
@@ -28,6 +30,7 @@ NSDictionary* relations;
     displayBackgroundColorsForDebugging = displayColors;
 }
 
+
 + (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews constraints:(NSArray*)constraints
 {
     return [AutolayoutHelper configureView:view subViews:subViews metrics:nil constraints:constraints];
@@ -35,45 +38,94 @@ NSDictionary* relations;
 
 + (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints
 {
-    AutolayoutHelper* helper = [[AutolayoutHelper alloc] initWithView:view];
-    
-    helper.metrics = metrics;
-    
-    [helper addViews:subViews constraints:constraints];
-    
-    return helper;
+    return [self configureView:view subViews:subViews metrics:metrics constraints:constraints keepViewStrongly:NO];
 }
 
 + (AutolayoutHelper*)configureView:(UIView*)view subViewLayers:(NSArray*)subViewLayers metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints
 {
+    return [AutolayoutHelper configureView:view subViewLayers:subViewLayers metrics:metrics constraints:constraints keepViewStrongly:NO];
+}
+
++ (AutolayoutHelper*)configureView:(UIView*)view fillWithSubView:(UIView*)v
+{
+    return [self configureView:view subViews:VarBindings(v) constraints:@[@"H:|[v]|", @"V:|[v]|"]];
+}
+
++ (AutolayoutHelper*)configureViewController:(UIViewController*)controller fillWithSubView:(UIView*)v
+{
+    id <UILayoutSupport> top = controller.topLayoutGuide;
+    id <UILayoutSupport> bottom = controller.bottomLayoutGuide;
+
+    return [self configureView:controller.view
+                      subViews:VarBindings(top, v, bottom)
+                   constraints:@[@"H:|[v]|", @"V:[top][v][bottom]"]];
+}
+
++ (AutolayoutHelper*)subViews:(NSDictionary*)subViews constraints:(NSArray*)constraints
+{
+    return [AutolayoutHelper subViews:subViews metrics:nil constraints:constraints];
+}
+
++ (AutolayoutHelper*)subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints
+{
+    // Here we want to keep the view strongly, because the AutolayoutHelper.view property is weak
+    return [self configureView:[[UIView alloc] init] subViews:subViews metrics:metrics constraints:constraints keepViewStrongly:YES];
+}
+
++ (AutolayoutHelper*)configureView:(UIView*)view subViews:(NSDictionary*)subViews metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints keepViewStrongly:(BOOL)keepViewStrongly
+{
+    return [AutolayoutHelper configureView:view subViewLayers:@[subViews] metrics:metrics constraints:constraints keepViewStrongly:keepViewStrongly];
+}
+
++ (void)configureScrollView:(UIScrollView*)scrollView contentView:(UIView*)contentView mainView:(UIView*)mainView {
+
+    [AutolayoutHelper configureView:scrollView fillWithSubView:contentView];
+
+    [mainView addConstraints:[NSLayoutConstraint
+            constraintsWithVisualFormat:@"H:[contentView(==mainView)]"
+                                options:(NSLayoutFormatOptions)0
+                                metrics:nil
+                                  views:VarBindings(contentView, mainView)]];
+}
+
+/**
+*  The methods above end up calling this one
+*/
++ (AutolayoutHelper*)configureView:(UIView*)view subViewLayers:(NSArray*)subViewLayers metrics:(NSDictionary*)metrics constraints:(NSArray*)constraints keepViewStrongly:(BOOL)keepViewStrongly
+{
     AutolayoutHelper* helper = [[AutolayoutHelper alloc] initWithView:view];
-    
+
+    if (keepViewStrongly) {
+        helper.strongPointerToView = view;
+    }
+
     helper.metrics = metrics;
-    
+
     for (NSDictionary* subViews in subViewLayers) {
         [helper addViews:subViews];
     }
-    
+
     [helper addConstraints:constraints];
-    
+
     return helper;
 }
+
 
 - (id)initWithView:(UIView*)view
 {
     self = [super init];
-    
+
     self.view = view;
     self.subViews = [[NSMutableDictionary alloc] init];
     self.temporalConstraints = [[NSMutableDictionary alloc] init];
-    
+
     return self;
 }
 
 - (void)addViews:(NSDictionary*)subViews {
-    
+
     for (NSString* subViewKey in subViews.allKeys) {
-        
+
         UIView* subView = subViews[subViewKey];
         [self addView:subView withKey:subViewKey];
     }
@@ -87,30 +139,33 @@ NSDictionary* relations;
     [self.view addSubview:subView];
 
     if (displayBackgroundColorsForDebugging) {
-        u_int32_t red = arc4random_uniform(256);
-        u_int32_t green = arc4random_uniform(256);
-        u_int32_t blue = arc4random_uniform(256);
-        subView.backgroundColor = [UIColor colorWithRed:red/255.0f
-                                                  green:green/255.0f
-                                                   blue:blue/255.0f
-                                                  alpha:0.4];
+        subView.backgroundColor = [AutolayoutHelper getRandomColorWithAlpha:0.4];
     }
 }
 
++ (UIColor*)getRandomColorWithAlpha:(CGFloat)alpha
+{
+    u_int32_t red = arc4random_uniform(256);
+    u_int32_t green = arc4random_uniform(256);
+    u_int32_t blue = arc4random_uniform(256);
+
+    return [UIColor colorWithRed:red/255.0f green:green/255.0f blue:blue/255.0f alpha:alpha];
+}
+
 - (void)addViews:(NSDictionary*)subViews constraints:(NSArray*)constraints {
-    
+
     [self addViews:subViews];
-    
+
     [self addConstraints:constraints];
 }
 
 - (void)removeViews:(NSDictionary*)subViews {
-    
+
     [self removeViewsWithKeys:subViews.allKeys];
 }
 
 - (void)removeViewsWithKeys:(NSArray*)viewKeys {
-    
+
     for (NSString* viewKey in viewKeys) {
         UIView* subView = self.subViews[viewKey];
         [subView removeFromSuperview];
@@ -138,15 +193,15 @@ NSDictionary* relations;
 - (NSArray*)addConstraint:(NSString*)constraint priority:(UILayoutPriority)priority
 {
     NSArray *constraints = [self parseConstraint:constraint];
-    
+
     if (priority != PRIORITY_DEFAULT) {
         for (NSLayoutConstraint* c in constraints) {
             c.priority = priority;
         }
     }
-    
+
     [self.view addConstraints:constraints];
-    
+
     return constraints;
 }
 
@@ -155,7 +210,7 @@ NSDictionary* relations;
     if ([constraint hasPrefix:XT_CONSTRAINT_SYMBOL])
     {
         return [self parseXtConstraint:constraint];
-        
+
     } else {
         // Normal VFL constraint
         return [NSLayoutConstraint constraintsWithVisualFormat:constraint
@@ -165,41 +220,30 @@ NSDictionary* relations;
     }
 }
 
-+ (void)configureScrollView:(UIScrollView*)scrollView contentView:(UIView*)contentView mainView:(UIView*)mainView {
-    
-    [AutolayoutHelper configureView:scrollView
-                           subViews:VarBindings(contentView)
-                        constraints:@[ @"H:|[contentView]|", @"V:|[contentView]|" ]];
-    
-    NSDictionary* viewDict = VarBindings(contentView, mainView);
-    [mainView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[contentView(==mainView)]"
-                                                                     options:0 metrics:0 views:viewDict]];
-}
-
 - (void)setConstraints:(NSArray*)constraints forKey:(NSString*)key {
     [self setConstraints:constraints priority:PRIORITY_DEFAULT forKey:key];
 }
 
 - (void)setConstraints:(NSArray*)constraints priority:(UILayoutPriority)priority forKey:(NSString*)key {
-    
+
     // Remove previously added constraints for that key
-    
+
     NSArray* constraintsToRemove = self.temporalConstraints[key];
-    
+
     if (constraintsToRemove.count > 0) {
         [self.view removeConstraints:constraintsToRemove];
         [self.temporalConstraints removeObjectForKey:key];
     }
-    
+
     // Add new constraints and store them
-    
+
     NSMutableArray* addedConstraints = [[NSMutableArray alloc] init];
-    
+
     for (NSString* constraint in constraints) {
         NSArray* resultingConstraints = [self addConstraint:constraint priority:priority];
         [addedConstraints addObjectsFromArray:resultingConstraints];
     }
-    
+
     self.temporalConstraints[key] = addedConstraints;
 }
 
@@ -209,26 +253,26 @@ NSDictionary* relations;
 + (void)initializeXtConstraintLogic
 {
     [self initializeXtConstraintRegex];
-    
+
     attributes = @{
-                   @"left" : @(NSLayoutAttributeLeft),
-                   @"right" : @(NSLayoutAttributeRight),
-                   @"top" : @(NSLayoutAttributeTop),
-                   @"bottom" : @(NSLayoutAttributeBottom),
-                   @"leading" : @(NSLayoutAttributeLeading),
-                   @"trailing" : @(NSLayoutAttributeTrailing),
-                   @"width" : @(NSLayoutAttributeWidth),
-                   @"height" : @(NSLayoutAttributeHeight),
-                   @"centerX" : @(NSLayoutAttributeCenterX),
-                   @"centerY" : @(NSLayoutAttributeCenterY),
-                   @"baseline" : @(NSLayoutAttributeBaseline)
-                   };
-    
+            @"left" : @(NSLayoutAttributeLeft),
+            @"right" : @(NSLayoutAttributeRight),
+            @"top" : @(NSLayoutAttributeTop),
+            @"bottom" : @(NSLayoutAttributeBottom),
+            @"leading" : @(NSLayoutAttributeLeading),
+            @"trailing" : @(NSLayoutAttributeTrailing),
+            @"width" : @(NSLayoutAttributeWidth),
+            @"height" : @(NSLayoutAttributeHeight),
+            @"centerX" : @(NSLayoutAttributeCenterX),
+            @"centerY" : @(NSLayoutAttributeCenterY),
+            @"baseline" : @(NSLayoutAttributeBaseline)
+    };
+
     relations = @{
-                  @"==" : @(NSLayoutRelationEqual),
-                  @">=" : @(NSLayoutRelationGreaterThanOrEqual),
-                  @"<=" : @(NSLayoutRelationLessThanOrEqual)
-                  };
+            @"==" : @(NSLayoutRelationEqual),
+            @">=" : @(NSLayoutRelationGreaterThanOrEqual),
+            @"<=" : @(NSLayoutRelationLessThanOrEqual)
+    };
 }
 
 + (void)initializeXtConstraintRegex
@@ -250,12 +294,12 @@ NSDictionary* relations;
     NSString* constant = [NSString stringWithFormat:@"([+-]) *(%@)", value];
 
     NSString* pattern = [NSString stringWithFormat:@"^%@: *%@ *%@ *%@ *(?:%@)? *(?:%@)?$",
-                         XT_CONSTRAINT_SYMBOL, attr, relation, attr, multiplier, constant];
-    
+                    XT_CONSTRAINT_SYMBOL, attr, relation, attr, multiplier, constant];
+
     xtConstraintRegex = [NSRegularExpression
-                         regularExpressionWithPattern:pattern
-                         options:NSRegularExpressionCaseInsensitive
-                         error:&error];
+            regularExpressionWithPattern:pattern
+                                 options:NSRegularExpressionCaseInsensitive
+                                   error:&error];
 }
 
 - (NSArray*)parseXtConstraint:(NSString*)constraint
@@ -263,19 +307,19 @@ NSDictionary* relations;
     NSArray* results = [xtConstraintRegex matchesInString:constraint
                                                   options:0
                                                     range:NSMakeRange(0, constraint.length)];
-    
+
     if (results.count != 1) {
         [self throwInvalidConstraint:constraint];
     }
-    
+
     NSTextCheckingResult* match = results[0];
-    
+
     // I think this won't happen if the regex is right, but check for debugging
     if (match.numberOfRanges != 10) {
         [self dumpMatch:match forString:constraint];
         [self throwInvalidConstraint:constraint];
     }
-    
+
     // item1.attr1 relation item2.attr2 factor constant
     // e.g. v1.leading == v2.centerX / 2 + 10
     NSString* item1Key = [constraint substringWithRange:[match rangeAtIndex:1]];
@@ -283,15 +327,15 @@ NSDictionary* relations;
     NSString* relationStr = [constraint substringWithRange:[match rangeAtIndex:3]];
     NSString* item2Key = [constraint substringWithRange:[match rangeAtIndex:4]];
     NSString* attr2Str = [constraint substringWithRange:[match rangeAtIndex:5]];
-    
+
     id item1 = [self findViewFromKey:item1Key];
     id item2 = [self findViewFromKey:item2Key];
-    
+
     NSLayoutAttribute attr1 = [self parseAttribute:attr1Str];
     NSLayoutAttribute attr2 = [self parseAttribute:attr2Str];
-    
+
     NSLayoutRelation relation = [self parseRelation:relationStr];
-    
+
     // Default multiplier is 1
     CGFloat multiplier = 1;
     if ([match rangeAtIndex:6].location != NSNotFound)
@@ -304,7 +348,7 @@ NSDictionary* relations;
             multiplier = 1/multiplier;
         }
     }
-    
+
     // Default constant is 0
     CGFloat constant = 0;
     if ([match rangeAtIndex:8].location != NSNotFound)
@@ -317,16 +361,16 @@ NSDictionary* relations;
             constant = -constant;
         }
     }
-    
+
     NSLayoutConstraint* c =
-    [NSLayoutConstraint constraintWithItem:item1
-                                 attribute:attr1
-                                 relatedBy:relation
-                                    toItem:item2
-                                 attribute:attr2
-                                multiplier:multiplier
-                                  constant:constant];
-    
+            [NSLayoutConstraint constraintWithItem:item1
+                                         attribute:attr1
+                                         relatedBy:relation
+                                            toItem:item2
+                                         attribute:attr2
+                                        multiplier:multiplier
+                                          constant:constant];
+
     return @[c];
 }
 
@@ -369,7 +413,7 @@ NSDictionary* relations;
 - (NSLayoutAttribute)parseAttribute:(NSString*)attrStr
 {
     NSNumber* value = attributes[attrStr];
-    
+
     if (value) {
         return (NSLayoutAttribute) [value intValue];
     } else {
@@ -381,7 +425,7 @@ NSDictionary* relations;
 - (NSLayoutRelation)parseRelation:(NSString*)relationStr
 {
     NSNumber* value = relations[relationStr];
-    
+
     if (value) {
         return (NSLayoutRelation) [value intValue];
     } else {
