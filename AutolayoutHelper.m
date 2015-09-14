@@ -133,9 +133,15 @@ NSDictionary* relations;
 
 - (void)addView:(UIView*)subView withKey:(NSString *)subViewKey
 {
+    self.subViews[subViewKey] = subView;
+
+    // Ignore layout guides, just keep then in subViews dictionary
+    if ([subView conformsToProtocol:@protocol(UILayoutSupport)]) {
+        return;
+    }
+
     subView.translatesAutoresizingMaskIntoConstraints = NO;
 
-    self.subViews[subViewKey] = subView;
     [self.view addSubview:subView];
 
     if (displayBackgroundColorsForDebugging) {
