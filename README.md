@@ -1,3 +1,6 @@
+
+**NOTE: I started a [new Swift version here](https://github.com/fmaylinch/layout-helper).**
+
 # AutolayoutHelper
 
 This is a Objective-C class that can help you [working with autolayout programmatically](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/AutoLayoutinCode/AutoLayoutinCode.html#//apple_ref/doc/uid/TP40010853-CH11-SW1) with the [visual format language](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage/VisualFormatLanguage.html).
